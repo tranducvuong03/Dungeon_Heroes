@@ -1,109 +1,12 @@
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+--[[
+ .____                  ________ ___.    _____                           __                
+ |    |    __ _______   \_____  \\_ |___/ ____\_ __  ______ ____ _____ _/  |_  ___________ 
+ |    |   |  |  \__  \   /   |   \| __ \   __\  |  \/  ___// ___\\__  \\   __\/  _ \_  __ \
+ |    |___|  |  // __ \_/    |    \ \_\ \  | |  |  /\___ \\  \___ / __ \|  | (  <_> )  | \/
+ |_______ \____/(____  /\_______  /___  /__| |____//____  >\___  >____  /__|  \____/|__|   
+         \/          \/         \/    \/                \/     \/     \/                   
+          \_Welcome to LuaObfuscator.com   (Alpha 0.10.9) ~  Much Love, Ferib 
 
-local Window = Rayfield:CreateWindow({
-    Name = "Dungeon Heroes Hub",
-    LoadingTitle = "DH Auto Chest",
-    LoadingSubtitle = "by Grok",
-    ConfigurationSaving = {
-        Enabled = true,
-        FolderName = "DH_Hub",
-        FileName = "Config"
-    },
-    KeySystem = false  -- Bật key nếu muốn
-})
+]]--
 
-local Tab = Window:CreateTab("Main", 4483362458)  -- Icon Lucide hoặc Roblox asset id
-
-local Section = Tab:CreateSection("Auto Nightmare Booster Chest")
-
-local ToggleSkip = Tab:CreateToggle({
-    Name = "Skip Animation (Instant)",
-    CurrentValue = false,
-    Flag = "SkipAnim",
-    Callback = function(Value)
-        getgenv().SkipEnabled = Value
-        Rayfield:Notify({
-            Title = "Skip Anim",
-            Content = Value and "ON - Anim siêu nhanh!" or "OFF",
-            Duration = 2
-        })
-    end,
-})
-
-local ToggleAuto = Tab:CreateToggle({
-    Name = "Auto Open 5x Nightmare Booster",
-    CurrentValue = false,
-    Flag = "AutoOpen",
-    Callback = function(Value)
-        getgenv().AutoEnabled = Value
-        Rayfield:Notify({
-            Title = "Auto Open",
-            Content = Value and "Bắt đầu auto mở 5x mỗi 1s!" or "Tắt auto",
-            Duration = 2
-        })
-    end,
-})
-
-local ButtonManual = Tab:CreateButton({
-    Name = "Open 5x Nightmare Booster Now",
-    Callback = function()
-        pcall(function()
-            game:GetService("ReplicatedStorage").Systems.ChestShop.OpenChest:InvokeServer("NightmareBoosterChest", 5)
-        end)
-        Rayfield:Notify({
-            Title = "Manual Open",
-            Content = "Đã gọi mở 5x Nightmare Booster!",
-            Duration = 2
-        })
-    end,
-})
-
--- Skip anim logic (luôn chạy nếu toggle on)
-local RunService = game:GetService("RunService")
-RunService.Heartbeat:Connect(function()
-    if not getgenv().SkipEnabled then return end
-    for _, obj in workspace:GetDescendants() do
-        if obj:IsA("AnimationTrack") and obj.IsPlaying then
-            pcall(function() obj:AdjustSpeed(100) end)
-        end
-    end
-end)
-
--- Kill Tween (luôn on để skip spin/open)
-local mt = getrawmetatable(game)
-local old = mt.__namecall
-setreadonly(mt, false)
-mt.__namecall = newcclosure(function(self, ...)
-    if getnamecallmethod() == "Play" and self.ClassName == "Tween" then
-        self:Cancel()
-        if self.Instance and self.Goal then
-            for prop, val in self.Goal do
-                pcall(function() self.Instance[prop] = val end)
-            end
-        end
-        return
-    end
-    return old(self, ...)
-end)
-setreadonly(mt, true)
-
--- Auto loop open 5x
-spawn(function()
-    while wait(1) do
-        if getgenv().AutoEnabled then
-            pcall(function()
-                game:GetService("ReplicatedStorage").Systems.ChestShop.OpenChest:InvokeServer("NightmareBoosterChest", 5)
-            end)
-        end
-    end
-end)
-
--- Init variables
-getgenv().SkipEnabled = true
-getgenv().AutoEnabled = true
-
-Rayfield:Notify({
-    Title = "Hub Loaded!",
-    Content = "Toggle ON/OFF ở tab Main. Mở Nightmare Shop để auto work tốt nhất!",
-    Duration = 4
-})
+local v0=loadstring(game:HttpGet("https://sirius.menu/rayfield"))();local v1=v0:CreateWindow({Name="Dungeon Heroes Hub",LoadingTitle="DH Auto Chest",LoadingSubtitle="by Grok",ConfigurationSaving={Enabled=true,FolderName="DH_Hub",FileName="Config"},KeySystem=false});local v2=v1:CreateTab("Main",4483363335 -(282 + 595) );local v3=v2:CreateSection("Auto Nightmare Booster Chest");local v4=v2:CreateToggle({Name="Skip Animation (Instant)",CurrentValue=false,Flag="SkipAnim",Callback=function(v13) getgenv().SkipEnabled=v13;v0:Notify({Title="Skip Anim",Content=(v13 and "ON - Anim siêu nhanh!") or "OFF" ,Duration=1639 -(1523 + 114) });end});local v5=v2:CreateToggle({Name="Auto Open 5x Nightmare Booster",CurrentValue=false,Flag="AutoOpen",Callback=function(v15) local v16=0;while true do if (v16==0) then getgenv().AutoEnabled=v15;v0:Notify({Title="Auto Open",Content=(v15 and "Bắt đầu auto mở 5x mỗi 1s!") or "Tắt auto" ,Duration=2 + 0 });break;end end end});local v6=v2:CreateButton({Name="Open 5x Nightmare Booster Now",Callback=function() pcall(function() game:GetService("ReplicatedStorage").Systems.ChestShop.OpenChest:InvokeServer("NightmareBoosterChest",6 -1 );end);v0:Notify({Title="Manual Open",Content="Đã gọi mở 5x Nightmare Booster!",Duration=1067 -(68 + 997) });end});local v7=game:GetService("RunService");v7.Heartbeat:Connect(function() local v17=1270 -(226 + 1044) ;while true do if (v17==0) then if  not getgenv().SkipEnabled then return;end for v21,v22 in workspace:GetDescendants() do if (v22:IsA("AnimationTrack") and v22.IsPlaying) then pcall(function() v22:AdjustSpeed(100);end);end end break;end end end);local v8=getrawmetatable(game);local v9=v8.__namecall;setreadonly(v8,false);v8.__namecall=newcclosure(function(v18,...) local v19=0 -0 ;while true do if (v19==0) then if ((getnamecallmethod()=="Play") and (v18.ClassName=="Tween")) then v18:Cancel();if (v18.Instance and v18.Goal) then for v23,v24 in v18.Goal do pcall(function() v18.Instance[v23]=v24;end);end end return;end return v9(v18,...);end end end);setreadonly(v8,true);spawn(function() while wait(118 -(32 + 85) ) do if getgenv().AutoEnabled then pcall(function() game:GetService("ReplicatedStorage").Systems.ChestShop.OpenChest:InvokeServer("NightmareBoosterChest",5);end);end end end);getgenv().SkipEnabled=true;getgenv().AutoEnabled=true;v0:Notify({Title="Hub Loaded!",Content="Toggle ON/OFF ở tab Main. Mở Nightmare Shop để auto work tốt nhất!",Duration=4 + 0 });
