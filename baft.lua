@@ -2,154 +2,149 @@ local player = game.Players.LocalPlayer
 local char = player.Character or player.CharacterAdded:Wait()
 local hrp = char:WaitForChild("HumanoidRootPart")
 
--- Tìm Tool và RemoteFunction
-local buildTool = player.Backpack:FindFirstChild("BuildingTool") or char:FindFirstChild("BuildingTool")
-if not buildTool then
-    print("❌ LỖI: Không tìm thấy BuildingTool.")
-    return
+-- CÁC CÔNG CỤ (Vui lòng để sẵn trong Backpack)
+local function getToolRF(toolName, rfName)
+    local tool = player.Backpack:FindFirstChild(toolName) or char:FindFirstChild(toolName)
+    if tool then return tool:FindFirstChild(rfName) end
+    return nil
 end
-local rfBuild = buildTool:FindFirstChild("RF")
 
-local paintingTool = player.Backpack:FindFirstChild("PaintingTool") or char:FindFirstChild("PaintingTool")
-local rfPaint = paintingTool and paintingTool:FindFirstChild("RF")
+local rfBuild = getToolRF("BuildingTool", "RF")
+local rfScale = getToolRF("ScalingTool", "RF")
+local rfPaint = getToolRF("PaintingTool", "RF")
 
--- Cấu hình block
-local blockToy = "ToyBlock"
-local blockWedge = "Wedge" 
-local blockWheelHuge = "HugeBackWheel"
-local inventoryToy = player:WaitForChild("Data"):FindFirstChild(blockToy)
-
-if not inventoryToy or inventoryToy.Value <= 0 then
-    print("❌ LỖI: Bạn không có khối " .. blockToy .. " nào trong kho đồ để xây!")
+if not rfBuild or not rfScale then
+    print("❌ LỖI TỐI KHẨN: Bạn cần CÓ SẴN CẢ CÁI BÚA VÀ THƯỚC ĐO (ScalingTool) trong Balo!")
     return
 end
 
--- Tính toán điểm bắt đầu
+-- Tọa độ mốc
 local forwardOffset = hrp.CFrame.LookVector * 15
 local startPos = hrp.Position + forwardOffset
 startPos = Vector3.new(math.round(startPos.X), math.round(startPos.Y) - 2, math.round(startPos.Z))
 local startCFrame = CFrame.new(startPos)
 
--- ĐỊNH NGHĨA MÀU SẮC (Sử dụng Color3 vì PaintingTool yêu cầu Color3, không dùng BrickColor)
-local colorSilver = Color3.fromRGB(192, 192, 192)
-local colorOrange = Color3.fromRGB(255, 85, 0)
-local colorBlack = Color3.fromRGB(20, 20, 20)
+-- Bảng Màu
+local cBody = Color3.fromRGB(255, 60, 0) -- Màu Cam Lambo
+local cGlass = Color3.fromRGB(15, 15, 15) -- Kính đen bóng
+local cMetal = Color3.fromRGB(80, 80, 80) -- Màu mâm/gầm
+local cLight = Color3.fromRGB(255, 255, 255) -- Đèn pha
 
-print("🟢 Bắt đầu xây dựng xe (Giai đoạn 1: Đặt Block)...")
+print("🏎️ Đang tiến hành sản xuất Siêu Xe Lamborghini (Tích hợp Auto-Scale)...")
 
-local voxelData = {
-    -- Nền chính (Màu bạc)
-    { pos = Vector3.new(-2, 0, 0), block = blockToy, color = colorSilver },
-    { pos = Vector3.new(0, 0, 0), block = blockToy, color = colorSilver },
-    { pos = Vector3.new(2, 0, 0), block = blockToy, color = colorSilver },
-    -- Tường bên (Bạc)
-    { pos = Vector3.new(-2, 0, 2), block = blockToy, color = colorSilver },
-    { pos = Vector3.new(2, 0, 2), block = blockToy, color = colorSilver },
-    { pos = Vector3.new(-2, 0, 4), block = blockToy, color = colorSilver },
-    { pos = Vector3.new(2, 0, 4), block = blockToy, color = colorSilver },
-    -- Sọc màu cam
-    { pos = Vector3.new(-2, 2, 0), block = blockToy, color = colorOrange },
-    { pos = Vector3.new(2, 2, 0), block = blockToy, color = colorOrange },
-    -- Thân bạc
-    { pos = Vector3.new(-2, 4, 0), block = blockToy, color = colorSilver },
-    { pos = Vector3.new(0, 4, 0), block = blockToy, color = colorSilver },
-    { pos = Vector3.new(2, 4, 0), block = blockToy, color = colorSilver },
-    -- Mũi xe dốc (Wedge)
-    { pos = Vector3.new(-2, 0, -2), block = blockWedge, rot = CFrame.Angles(0, 0, 0), color = colorSilver },
-    { pos = Vector3.new(0, 0, -2), block = blockWedge, rot = CFrame.Angles(0, 0, 0), color = colorSilver },
-    { pos = Vector3.new(2, 0, -2), block = blockWedge, rot = CFrame.Angles(0, 0, 0), color = colorSilver },
-    { pos = Vector3.new(-2, 2, -2), block = blockWedge, rot = CFrame.Angles(0, 0, 0), color = colorSilver },
-    { pos = Vector3.new(2, 2, -2), block = blockWedge, rot = CFrame.Angles(0, 0, 0), color = colorSilver },
-    -- Kính chắn gió (Đen)
-    { pos = Vector3.new(0, 2, -2), block = blockWedge, rot = CFrame.Angles(0, 0, 0), color = colorBlack },
-    { pos = Vector3.new(-2, 4, -2), block = blockWedge, rot = CFrame.Angles(0, 0, 0), color = colorBlack },
-    { pos = Vector3.new(0, 4, -2), block = blockWedge, rot = CFrame.Angles(0, 0, 0), color = colorBlack },
-    { pos = Vector3.new(2, 4, -2), block = blockWedge, rot = CFrame.Angles(0, 0, 0), color = colorBlack },
-    -- Mái xe
-    { pos = Vector3.new(-2, 6, 0), block = blockToy, color = colorSilver },
-    { pos = Vector3.new(0, 6, 0), block = blockToy, color = colorSilver },
-    { pos = Vector3.new(2, 6, 0), block = blockToy, color = colorSilver },
-    -- Đuôi xe
-    { pos = Vector3.new(-2, 0, 14), block = blockToy, color = colorSilver },
-    { pos = Vector3.new(0, 0, 14), block = blockToy, color = colorSilver },
-    { pos = Vector3.new(2, 0, 14), block = blockToy, color = colorSilver },
-    { pos = Vector3.new(-2, 2, 14), block = blockToy, color = colorSilver },
-    { pos = Vector3.new(2, 2, 14), block = blockToy, color = colorSilver },
-    { pos = Vector3.new(-2, 4, 14), block = blockToy, color = colorSilver },
-    { pos = Vector3.new(0, 4, 14), block = blockToy, color = colorSilver },
-    { pos = Vector3.new(2, 4, 14), block = blockToy, color = colorSilver },
-    { pos = Vector3.new(-2, 6, 14), block = blockToy, color = colorSilver },
-    { pos = Vector3.new(0, 6, 14), block = blockToy, color = colorSilver },
-    { pos = Vector3.new(2, 6, 14), block = blockToy, color = colorSilver },
-    -- Cánh gió
-    { pos = Vector3.new(-2, 8, 12), block = blockWedge, rot = CFrame.Angles(0, math.pi/2, 0), color = colorSilver },
-    { pos = Vector3.new(0, 8, 12), block = blockToy, color = colorSilver },
-    { pos = Vector3.new(2, 8, 12), block = blockWedge, rot = CFrame.Angles(0, -math.pi/2, 0), color = colorSilver },
-    -- Bánh xe (Không cần sơn)
-    { pos = Vector3.new(-4, -1, 1), block = blockWheelHuge },
-    { pos = Vector3.new(4, -1, 1), block = blockWheelHuge },
-    { pos = Vector3.new(-4, -1, 13), block = blockWheelHuge },
-    { pos = Vector3.new(4, -1, 13), block = blockWheelHuge },
+-- BẢN VẼ CAO CẤP (Tích hợp Tọa độ + Kích thước Scale)
+-- Cấu trúc: { Loại khối, Tọa độ tương đối X-Y-Z, Kích thước X-Y-Z, Góc xoay, Màu sắc }
+local blueprint = {
+    -- 1. KHUNG GẦM DƯỚI CÙNG (Gầm siêu thấp, siêu mỏng)
+    { b="MetalBlock", pos=Vector3.new(0, -0.5, 6), size=Vector3.new(6, 0.2, 16), color=cMetal },
+
+    -- 2. THÂN XE CƠ BẢN (Đã bóp dẹp và kéo dài)
+    -- Lườn xe 2 bên
+    { b="ToyBlock", pos=Vector3.new(-2.5, 0.5, 6), size=Vector3.new(1, 2, 16), color=cBody },
+    { b="ToyBlock", pos=Vector3.new(2.5, 0.5, 6), size=Vector3.new(1, 2, 16), color=cBody },
+    -- Khối động cơ sau
+    { b="ToyBlock", pos=Vector3.new(0, 1, 11), size=Vector3.new(4, 3, 6), color=cBody },
+    
+    -- 3. MŨI XE VÁT CHÉO VÀ DÀI (Đặc trưng Lambo)
+    -- Mũi nhọn mỏng phía trước
+    { b="Wedge", pos=Vector3.new(0, 0.5, -1), size=Vector3.new(4, 1.5, 4), rot=CFrame.Angles(0, 0, 0), color=cBody },
+    -- Lưỡi cản gió trước (Splitter mỏng dính)
+    { b="MetalBlock", pos=Vector3.new(0, -0.2, -2.5), size=Vector3.new(6, 0.1, 2), color=cGlass },
+
+    -- 4. ĐÈN PHA MẮT HÍ
+    { b="NeonBlock", pos=Vector3.new(-2, 1, -1), size=Vector3.new(1.5, 0.2, 0.5), rot=CFrame.Angles(math.rad(15), -math.rad(15), 0), color=cLight },
+    { b="NeonBlock", pos=Vector3.new(2, 1, -1), size=Vector3.new(1.5, 0.2, 0.5), rot=CFrame.Angles(math.rad(15), math.rad(15), 0), color=cLight },
+
+    -- 5. KÍNH CHẮN GIÓ (Độ dốc thoải dài mượt mà)
+    -- Kính chính
+    { b="Wedge", pos=Vector3.new(0, 2.5, 3), size=Vector3.new(4, 2.5, 6), rot=CFrame.Angles(0, 0, 0), color=cGlass },
+    -- Mái kính vuốt xuống
+    { b="Wedge", pos=Vector3.new(0, 3.5, 7.5), size=Vector3.new(4, 0.5, 3), rot=CFrame.Angles(0, math.pi, 0), color=cGlass },
+
+    -- 6. CÁNH GIÓ SAU (Spoiler)
+    -- Chân đế
+    { b="MetalBlock", pos=Vector3.new(-2, 3, 13.5), size=Vector3.new(0.2, 1.5, 0.5), color=cGlass },
+    { b="MetalBlock", pos=Vector3.new(2, 3, 13.5), size=Vector3.new(0.2, 1.5, 0.5), color=cGlass },
+    -- Bản cánh gió siêu mỏng ngang
+    { b="MetalBlock", pos=Vector3.new(0, 4, 14), size=Vector3.new(5.5, 0.1, 2), rot=CFrame.Angles(math.rad(5), 0, 0), color=cGlass },
+
+    -- 7. BÁNH XE (Kéo lùi ra ngoài để thân xe nhìn ngầu hơn)
+    { b="HugeBackWheel", pos=Vector3.new(-3.5, 0, 1), size=Vector3.new(2,2,2) },
+    { b="HugeBackWheel", pos=Vector3.new(3.5, 0, 1), size=Vector3.new(2,2,2) },
+    { b="HugeBackWheel", pos=Vector3.new(-3.5, 0, 12), size=Vector3.new(2,2,2) },
+    { b="HugeBackWheel", pos=Vector3.new(3.5, 0, 12), size=Vector3.new(2,2,2) },
 }
 
--- 1. TẠO BẢN ĐỒ MÀU (Dictionary) DỰA TRÊN TỌA ĐỘ
 local expectedColors = {}
 local blocksPlaced = 0
 
-for i, data in ipairs(voxelData) do
-    local inventoryData = player.Data:FindFirstChild(data.block)
-    if not inventoryData then continue end
+for i, data in ipairs(blueprint) do
+    local invData = player.Data:FindFirstChild(data.b)
+    if not invData or invData.Value <= 0 then 
+        print("⚠️ Cảnh báo: Bạn hết khối " .. data.b)
+        continue 
+    end
 
+    -- Tính tọa độ tuyệt đối
     local targetCFrame = startCFrame * CFrame.new(data.pos)
     if data.rot then targetCFrame = targetCFrame * data.rot end
 
-    -- Gửi lệnh đặt block
-    rfBuild:InvokeServer(data.block, inventoryData.Value, nil, nil, true, targetCFrame, nil)
+    -- 1. ĐẶT KHỐI
+    rfBuild:InvokeServer(data.b, invData.Value, nil, nil, true, targetCFrame, nil)
     blocksPlaced = blocksPlaced + 1
+    task.wait(0.03) -- Chờ đặt xong
+
+    -- 2. TÌM VÀ THU PHÓNG (SCALE) KHỐI VỪA ĐẶT
+    -- Để Scale, Server yêu cầu Model thực sự. Ta quét vùng nhỏ quanh tọa độ vừa đặt để bắt nó.
+    local Region = Region3.new(targetCFrame.Position - Vector3.new(1,1,1), targetCFrame.Position + Vector3.new(1,1,1))
+    local partsInRegion = workspace:FindPartsInRegion3(Region, nil, 50)
     
-    -- Ghi nhớ màu sắc vào Dictionary với Key là chuỗi tọa độ (làm tròn để tránh sai số dấu phẩy động)
+    local placedModel = nil
+    for _, part in ipairs(partsInRegion) do
+        if part.Parent and part.Parent.Name == data.b and part.Parent.Parent.Name == player.Name then
+            placedModel = part.Parent
+            break
+        end
+    end
+
+    -- Nếu tìm thấy khối vừa đặt, gửi lệnh ÉP KÍCH THƯỚC lên Server
+    if placedModel and data.size then
+        -- Gửi lệnh Scale: (Model, Kích thước mới, Tọa độ mới - vì khi scale tâm có thể bị lệch)
+        rfScale:InvokeServer(placedModel, data.size, targetCFrame)
+    end
+
+    -- Lưu màu sắc để sơn sau
     if data.color then
-        local pos = targetCFrame.Position
-        local key = string.format("%.0f,%.0f,%.0f", pos.X, pos.Y, pos.Z)
+        local key = string.format("%.1f,%.1f,%.1f", targetCFrame.Position.X, targetCFrame.Position.Y, targetCFrame.Position.Z)
         expectedColors[key] = data.color
     end
 
-    task.wait(0.05) 
+    task.wait(0.05)
 end
 
-print("✅ Đã xây xong " .. blocksPlaced .. " khối! Đang chờ Server nạp vật lý...")
+print("✅ Đã xây & ép tỉ lệ xong " .. blocksPlaced .. " khối! Đang đợi 2 giây để nạp vật lý...")
 
--- 2. ĐỢI VÀ QUÉT ĐỂ SƠN MÀU (Giai đoạn 2)
+-- GIAI ĐOẠN 2: TÔ MÀU
 if rfPaint then
-    task.wait(1.5) -- Đợi 1.5s cho khối hiện hình hoàn toàn trên Workspace
-    print("🎨 Bắt đầu sơn màu (Batching)...")
+    task.wait(2) 
+    print("🎨 Bắt đầu sơn xe...")
     
     local myBoatFolder = workspace:FindFirstChild("PlayerBoats") and workspace.PlayerBoats:FindFirstChild(player.Name)
     local paintBatch = {}
     
     if myBoatFolder then
-        -- Quét các khối trong khu vực của người chơi
         for _, obj in ipairs(myBoatFolder:GetDescendants()) do
             if obj:IsA("BasePart") then
-                -- Lấy tọa độ của khối trên sân
-                local pos = obj.Position
-                local key = string.format("%.0f,%.0f,%.0f", pos.X, pos.Y, pos.Z)
-                
-                -- Nếu tọa độ này có nằm trong "bản đồ màu" đã lưu -> Nhét vào mảng
+                local key = string.format("%.1f,%.1f,%.1f", obj.Position.X, obj.Position.Y, obj.Position.Z)
                 if expectedColors[key] then
                     table.insert(paintBatch, { obj, expectedColors[key] })
                 end
             end
         end
         
-        -- Gửi mẻ sơn lên Server
         if #paintBatch > 0 then
             rfPaint:InvokeServer(paintBatch)
-            print("✅ Đã sơn thành công " .. #paintBatch .. " khối trong 1 nhịp!")
-        else
-            print("⚠️ Không tìm thấy khối nào khớp tọa độ để sơn.")
+            print("✅ Đã sơn mượt mà!")
         end
     end
-else
-    print("⚠️ Bỏ qua bước sơn vì không có PaintingTool.")
 end
