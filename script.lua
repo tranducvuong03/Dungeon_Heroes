@@ -21,7 +21,7 @@ local chestOptions = {
 }
 
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "MySimpleChestGUI"
+screenGui.Name = "AutoOpenChest - Made by Uranus"
 screenGui.Parent = coreGui
 screenGui.ResetOnSpawn = false
 
